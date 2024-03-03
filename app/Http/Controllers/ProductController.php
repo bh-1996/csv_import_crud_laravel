@@ -19,17 +19,59 @@ class ProductController extends Controller
     }
 
 
+    // public function exportCsv(Request $request)
+    // {
+    //     ini_set('max_execution_time', 0);
+    //     /*set_time_limit(0);*/
+    //     ini_set('post_max_size', '500000000000M');
+    //     ini_set('upload_max_filesize', '500000000000M');
+
+    //     $fileName = 'products.csv';
+
+    //     $products = Product::all();
+
+    //     $headers = array(
+    //         "Content-type" => "text/csv",
+    //         "Content-Disposition" => "attachment; filename=$fileName",
+    //         "Pragma" => "no-cache",
+    //         "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+    //         "Expires" => "0",
+    //     );
+
+    //     $columns = array('Title', 'Price', 'Description');
+    //     $callback = function () use ($products, $columns) {
+    //         $file = fopen('php://output', 'w');
+    //         fputcsv($file, $columns);
+
+    //         foreach ($products as $product) {
+    //             $row['Title'] = $product->title;
+    //             $row['Price'] = $product->price;
+    //             $row['Description'] = $product->description;
+    //             // print_r($row);die;
+    //             fputcsv($file, array($row['Title'], $row['Price'], $row['Description']));
+    //         }
+
+    //         fclose($file);
+    //     };
+    //     back()->with('msg', 'CSV Exported successfully!');
+    //     return response()->stream($callback, 200, $headers);
+    // }
+
     public function exportCsv(Request $request)
-    {
+{
+    try {
+        // Set the maximum execution time and upload file size limits
         ini_set('max_execution_time', 0);
-        /*set_time_limit(0);*/
         ini_set('post_max_size', '500000000000M');
         ini_set('upload_max_filesize', '500000000000M');
 
+        // File name for the exported CSV
         $fileName = 'products.csv';
 
+        // Retrieve all products from the database
         $products = Product::all();
 
+        // Define headers for the CSV file
         $headers = array(
             "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$fileName",
@@ -38,7 +80,10 @@ class ProductController extends Controller
             "Expires" => "0",
         );
 
+        // Define the columns for the CSV file
         $columns = array('Title', 'Price', 'Description');
+
+        // Callback function to generate CSV content
         $callback = function () use ($products, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
@@ -47,16 +92,24 @@ class ProductController extends Controller
                 $row['Title'] = $product->title;
                 $row['Price'] = $product->price;
                 $row['Description'] = $product->description;
-                // print_r($row);die;
+
                 fputcsv($file, array($row['Title'], $row['Price'], $row['Description']));
             }
 
             fclose($file);
         };
+
+        // Stream the CSV file to the response
         return response()->stream($callback, 200, $headers);
+    } catch (\Exception $e) {
+        // Handle any exceptions during the export
+        return back()->withErrors(['error' => $e->getMessage()])->withInput();
     }
-    public function importProducts(Request $request)
-    {
+}
+
+public function importProducts(Request $request)
+{
+    try {
         ini_set('max_execution_time', 0);
         ini_set('post_max_size', '500000000000M');
         ini_set('upload_max_filesize', '500000000000M');
@@ -79,6 +132,7 @@ class ProductController extends Controller
             $totalProducts = count($products);
 
             $icheck = 0;
+
             for ($i = 0; $i < $totalProducts; $i++) {
                 $product = $products[$i];
 
@@ -107,9 +161,12 @@ class ProductController extends Controller
                 }
             }
 
-            return Redirect::to('/');
+            return Redirect::to('/')->with('msg', 'CSV Imported successfully!');
         }
+    } catch (\Exception $e) {
+        return Redirect::to('/product/import')->with("message", "Error during CSV import: " . $e->getMessage());
     }
+}
 
     // public function importProducts(Request $request)
     // {
