@@ -19,6 +19,7 @@ use App\Http\Controllers\ProductController;
 
 Route::get('/',[ProductController::class,'Index'])->name('index');
 Route::get("/product/edit/{id}", [ProductController::class, 'productEdit'])->name("product.edit");
+Route::get("/product/delete/{id}", [ProductController::class, 'productDelete'])->name("product.delete");
 Route::post("/product/update", [ProductController::class, 'productUpdate'])->name("product.update");
 
 Route::get('/product/import_product', function(){

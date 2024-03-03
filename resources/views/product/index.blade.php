@@ -24,6 +24,20 @@
                     </div>
                 </div>
             </div>
+            <div>
+                @if (session()->has('msg'))
+                <div id="msg" class="alert alert-success">
+                    {{ session()->get('msg') }}
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="mb-3 user-error-message">
+                    <span class="help-block errors error-message">
+                        <strong style="color: red">{{ $errors->first() }}</strong>
+                    </span>
+                </div>
+            @endif
+            </div>
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
@@ -46,6 +60,8 @@
                         <td>{{ optional($row->created_at)->format('d-M-Y') ?? '' }}</td>
                         <td>{{ $row->description ?? '' }}</td>
                         <td><div><a href="{{ route('product.edit', $row->id) }}" class="btn btn-dark">Edit</a></div></td>
+                        <td><div><a href="{{ route('product.delete', $row->id) }}" class="btn btn-danger">Delete</a></div></td>
+
                         </tr>
                     @endforeach
                 </tbody>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -161,26 +162,55 @@ class ProductController extends Controller
 
     public function productEdit($id)
     {
-        $product = Product::find($id);
-        if ($product) {
-            return view("product.edit", ['product' => $product]);
+       try {
+            $product = Product::find($id);
+            if (!$product) {
+                return redirect()->back()->withErrors(['error' => 'Product not found!']);
+            }
+                return view("product.edit", ['product' => $product]);
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            return redirect()->back()->withErrors(['error' => $message]);
         }
-        return Redirect::back();
         
     }
 
 
     public function productUpdate(Request $request)
     {
-        $product = Product::find($request->id);
-        $product->title = $request->title;
-        $product->description = $request->description;
-        $product->price = $request->price;
-            if($product->update());
-            {
-            return redirect()->route('index');
+        try {
+            $product = Product::find($request->id);
+            if (!$product) {
+                return redirect()->back()->withErrors(['error'=>'Product not found']);
             }
-            return redirect()->back();
+            $product->title = $request->title;
+            $product->description = $request->description;
+            $product->price = $request->price;
+                if($product->update());
+                {
+                return redirect()->route('index')->with('msg', 'Product updated successfully!');
+                }
+            return redirect()->back()->withErrors(['error'=> 'Something went wrong!']);
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            return redirect()->back()->withErrors(['error' => $message]);
+        }
     }
+
+    public function productDelete(Request $request)
+    {
+        try {
+            $product = Product::find($request->id);
+            if (!$product) {
+                return redirect()->back()->withErrors(['error'=>'Product not found']);
+            }
+            $product->delete();
+            return redirect()->back()->with('msg', 'Product deleted successfully!');
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            return redirect()->back()->withErrors(['error' => $message]);
+        }
+    }
+    
 
 }
