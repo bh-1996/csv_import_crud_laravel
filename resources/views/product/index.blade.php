@@ -39,20 +39,20 @@
                 <tbody>
                 @foreach ($products as $s_no => $row )
                     <tr>
-                        <td>{{ $s_no+1  ?? '' }}</td>
-                        <td>{{ '#'.$row->id ?? '' }}</td>
+                        <td>{{ $s_no + 1 ?? '' }}</td>
+                        <td>{{ '#' . $row->id ?? '' }}</td>
                         <td>{{ $row->title ?? '' }}</td>
                         <td>{{ $row->price ?? '' }}</td>
-                        <td>{{ $row->created_at ?? '' }}</td>
+                        <td>{{ optional($row->created_at)->format('d-M-Y') ?? '' }}</td>
                         <td>{{ $row->description ?? '' }}</td>
-                        <td> <div><a href="{{route('product.edit',$row->id)}}" class="btn btn-dark">Edit</a></div></td>
-                    </tr>
+                        <td><div><a href="{{ route('product.edit', $row->id) }}" class="btn btn-dark">Edit</a></div></td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
             <div class="paginator">
-                            {!! $products->links() !!}
-                        </div>
+                {!! $products->links() !!}
+            </div>
         </div> 
        
     </div>   

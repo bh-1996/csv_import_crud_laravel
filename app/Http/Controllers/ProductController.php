@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-use Validator;
-use DB;
-use Hash;
-use Redirect;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 
 class ProductController extends Controller
 {
@@ -54,11 +54,9 @@ class ProductController extends Controller
         };
         return response()->stream($callback, 200, $headers);
     }
-
     public function importProducts(Request $request)
     {
         ini_set('max_execution_time', 0);
-        /*set_time_limit(0);*/
         ini_set('post_max_size', '500000000000M');
         ini_set('upload_max_filesize', '500000000000M');
 
@@ -79,23 +77,87 @@ class ProductController extends Controller
             $products = array_slice($data, 1);
             $totalProducts = count($products);
 
-            
             $icheck = 0;
             for ($i = 0; $i < $totalProducts; $i++) {
                 $product = $products[$i];
-                $records =  DB::table('products')->insertOrIgnore([
-                                'title' => $product[0] ?? '',
-                                'price' => $product[1] ?? '',
-                                'description' => $product[2] ?? '',
-                        ]);
-                
-                $icheck++;
+
+                $validator = Validator::make($product, [
+                    '0' => 'required',  // Assuming 'title' is in the first column
+                    '1' => 'required|numeric',  // Assuming 'price' is in the second column and should be a numeric value
+                    '2' => 'nullable',  // Assuming 'description' is in the third column and can be nullable
+                ]);
+
+                if ($validator->fails()) {
+                    return Redirect::to('/product/import')->with("message", $validator->errors()->first());
+                }
+
+                $records = [
+                    'title' => $product[0],
+                    'price' => $product[1],
+                    'description' => $product[2] ?? null,
+                ];
+
+                try {
+                    // Create the product
+                    $productModel = Product::create($records);
+                    $icheck++;
+                } catch (\Exception $e) {
+                    return Redirect::to('/product/import')->with("message", "Error inserting product at row $icheck: " . $e->getMessage());
+                }
             }
-             //dd($icheck);
+
             return Redirect::to('/');
         }
-        
     }
+
+    // public function importProducts(Request $request)
+    // {
+    //     ini_set('max_execution_time', 0);
+    //     /*set_time_limit(0);*/
+    //     ini_set('post_max_size', '500000000000M');
+    //     ini_set('upload_max_filesize', '500000000000M');
+
+    //     $postData = $request->all();
+
+    //     $validateData = Validator::make($postData, [
+    //         'csv_file' => 'required|mimes:csv,txt',
+    //     ]);
+
+    //     if ($validateData->fails()) {
+    //         return Redirect::to('/product/import')->with("message", $validateData->errors()->first());
+    //     }
+
+    //     if ($request->hasFile('csv_file')) {
+    //         $path = $request->file('csv_file')->getRealPath();
+    //         $data = array_map('str_getcsv', file($path));
+
+    //         $products = array_slice($data, 1);
+    //         $totalProducts = count($products);
+
+            
+    //         $icheck = 0;
+    //         for ($i = 0; $i < $totalProducts; $i++) {
+    //             $product = $products[$i];
+    //             // $records =  DB::table('products')->insertOrIgnore([
+    //             //                 'title' => $product[0] ?? '',
+    //             //                 'price' => $product[1] ?? '',
+    //             //                 'description' => $product[2] ?? '',
+    //             //         ]);
+    //             $records = [
+    //                 'title' => $product[0] ?? '',
+    //                 'price' => $product[1] ?? '',
+    //                 'description' => $product[2] ?? '',
+    //             ];
+    //             // dd($records);
+    //             $products = Product::create($records);
+                
+    //             $icheck++;
+    //         }
+    //          //dd($icheck);
+    //         return Redirect::to('/');
+    //     }
+        
+    // }
 
     public function productEdit($id)
     {
